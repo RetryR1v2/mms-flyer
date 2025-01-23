@@ -4,9 +4,14 @@ exports.vorp_inventory:registerUsableItem(Config.EmptyFlyerItem, function(data)
     local source = data.source
     TriggerClientEvent('mms-flyer:client:OpenCreator',source)
 end)
-
 exports.vorp_inventory:registerUsableItem(Config.FlyerItem, function(data)
     local src = data.source
+    if next(data.item) ~= nil and data.item.metadata then --Item has Metadata
+        local flyerId = data.item.metadata.FlyerID
+		OpenFlyer(src, flyerId, data.item.id)
+		return
+    end
+    -- If metadata not found just open the select menu
     local Inventory = exports.vorp_inventory:getUserInventoryItems(src,nil)
     Citizen.Wait(250)
     TriggerClientEvent('mms-flyer:client:selectflyer',src,Inventory)
@@ -32,14 +37,18 @@ end)
 
 RegisterServerEvent('mms-flyer:server:OpenFlyer',function(FlyerID,ItemIDtoDelte)
     local src = source
-    local FlyerData = MySQL.query.await("SELECT * FROM mms_flyer WHERE id=@id", { ["id"] = FlyerID})
+	OpenFlyer(src, FlyerID, ItemIDtoDelte)
+end)
+
+function OpenFlyer(src, flyerId, itemIdToDelete)
+    local FlyerData = MySQL.query.await("SELECT * FROM mms_flyer WHERE id=@id", { ["id"] = flyerId})
     if #FlyerData > 0 then
         local Data = FlyerData[1]
-        TriggerClientEvent('mms-flyer:client:openflyer',src,Data,ItemIDtoDelte)
+        TriggerClientEvent('mms-flyer:client:openflyer',src, Data, itemIdToDelete)
     else
         VORPcore.NotifyTip(src,_U('NoFlyerFound'),5000)
     end
-end)
+end
 
 RegisterServerEvent('mms-flyer:server:DeleteFlyer',function(FlyerID,FlyerDesc,ItemIDtoDelte)
     local src = source
