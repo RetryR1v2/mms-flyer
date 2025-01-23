@@ -14,7 +14,7 @@
 # Changelog
 
 - 1.1.0 Initial Release Version
-
+- 1.1.1 Flyer Opens Directly by Clicking It Special Thanks to DaNeo
 
 # installation 
 
