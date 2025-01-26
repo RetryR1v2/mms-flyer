@@ -50,6 +50,48 @@ function OpenFlyer(src, flyerId, itemIdToDelete)
     end
 end
 
+RegisterServerEvent('mms-flyer:server:GetFlyer',function(FlyerID,FlyerDesc,ItemIDtoDelte,PostCoords,PostModel)
+    local src = source
+    local AllFlyer = MySQL.query.await("SELECT * FROM mms_flyer", { })
+        if #AllFlyer > 0 then
+            TriggerClientEvent('mms-flyer:client:ReciveFlyer',src,FlyerID,FlyerDesc,ItemIDtoDelte,PostCoords,AllFlyer,PostModel)
+        end
+end)
+
+RegisterServerEvent('mms-flyer:server:AllFlyer',function(FlyerID,FlyerDesc,ItemIDtoDelte,PostCoords)
+    local src = source
+    local Character = VORPcore.getUser(src).getUsedCharacter
+    local MycharIdentifier = Character.charIdentifier
+    local AllFlyer = MySQL.query.await("SELECT * FROM mms_flyer", { })
+        if #AllFlyer > 0 then
+            TriggerClientEvent('mms-flyer:client:GetFlyerData',src,AllFlyer,MycharIdentifier)
+        end
+end)
+
+RegisterServerEvent('mms-flyer:server:HangFlyer',function(FlyerID,FlyerDesc,ItemIDtoDelte,PostCoords,NewFlyerX,NewFlyerY,NewFlyerZ,PostModel)
+    local src = source
+
+        if not Config.LatestVORPInvetory then
+            exports.vorp_inventory:subItemID(src, ItemIDtoDelte,nil,nil)
+        else
+            exports.vorp_inventory:subItemById(src, ItemIDtoDelte,nil,nil,1)
+        end
+
+        MySQL.update('UPDATE `mms_flyer` SET hanging = ? WHERE id = ?',{1, FlyerID})
+        MySQL.update('UPDATE `mms_flyer` SET hangtime = ? WHERE id = ?',{Config.PosterHours * 60, FlyerID})
+        MySQL.update('UPDATE `mms_flyer` SET posx = ? WHERE id = ?',{NewFlyerX, FlyerID})
+        MySQL.update('UPDATE `mms_flyer` SET posy = ? WHERE id = ?',{NewFlyerY, FlyerID})
+        MySQL.update('UPDATE `mms_flyer` SET posz = ? WHERE id = ?',{NewFlyerZ, FlyerID})
+        MySQL.update('UPDATE `mms_flyer` SET postmodel = ? WHERE id = ?',{PostModel, FlyerID})
+
+        Citizen.Wait(500)
+        for h,player in ipairs(GetPlayers()) do
+            TriggerClientEvent('mms-flyer:client:ReloadFlyer',player)
+        end
+
+        VORPcore.NotifyTip(src,_U('FlyerHanging'),5000)
+end)
+
 RegisterServerEvent('mms-flyer:server:DeleteFlyer',function(FlyerID,FlyerDesc,ItemIDtoDelte)
     local src = source
     if not Config.LatestVORPInvetory then
@@ -59,4 +101,38 @@ RegisterServerEvent('mms-flyer:server:DeleteFlyer',function(FlyerID,FlyerDesc,It
     end
     MySQL.execute('DELETE FROM mms_flyer WHERE id = ?', {FlyerID}, function() end)
     VORPcore.NotifyTip(src,_U('FlyerDeleted'),5000)
+end)
+
+RegisterServerEvent('mms-flyer:server:DeleteFlyerPost',function(FlyerID)
+    local src = source
+    MySQL.execute('DELETE FROM mms_flyer WHERE id = ?', {FlyerID}, function() end)
+    VORPcore.NotifyTip(src,_U('FlyerDeleted'),5000)
+    for h,player in ipairs(GetPlayers()) do
+        TriggerClientEvent('mms-flyer:client:ReloadFlyer',player)
+    end
+    VORPcore.NotifyTip(src,_U('FlyerDeletedfromPost'),5000)
+end)
+
+Citizen.CreateThread(function ()
+    while true do
+        Citizen.Wait(300000)
+        local AllFlyer = MySQL.query.await("SELECT * FROM mms_flyer", { })
+        if #AllFlyer > 0 then
+            for h,v in ipairs(AllFlyer) do
+                if v.hanging == 1 then
+                    local OldTimer = v.hangtime
+                    local NewTimer = OldTimer - 5
+                    local FlyerID = v.id
+                    if NewTimer <= 0 then
+                        MySQL.execute('DELETE FROM mms_flyer WHERE id = ?', {FlyerID}, function() end)
+                        for h,player in ipairs(GetPlayers()) do
+                            TriggerClientEvent('mms-flyer:client:ReloadFlyer',player)
+                        end
+                    else
+                        MySQL.update('UPDATE `mms_flyer` SET hangtime = ? WHERE id = ?',{NewTimer, FlyerID})
+                    end
+                end
+            end
+        end
+    end
 end)

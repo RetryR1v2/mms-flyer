@@ -15,6 +15,10 @@
 
 - 1.1.0 Initial Release Version
 - 1.1.1 Flyer Opens Directly by Clicking It Special Thanks to DaNeo
+- 1.1.2 You can now hang the Flyer
+- Delete It From Post after Hanging (Only the Owner)
+- Easy Add More Posts in config.
+- known Issue on Some Posts it gets displayed wrong i nee dto get a prop adjustment sooner or later
 
 # installation 
 

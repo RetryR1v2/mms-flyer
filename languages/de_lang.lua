@@ -16,4 +16,16 @@ Locales["de_lang"] = {
     CloseFlyer2 = 'Flyer Schließen',
     DeleteFlyer = 'Flyer Löschen',
     FlyerDeleted = 'Flyer Gelöscht',
+
+    -- NEW
+
+    HangFlyer = 'Flyer Aufhängen',
+    AlreadyHanging = 'Hier hängt bereits ein Flyer',
+    FlyerPromptGroup = 'Aufgehängter Flyer',
+    ReadFlyerPrompt = 'Flyer Lesen.',
+    DeleteFlyerPrompt = 'Flyer Abreißen.',
+    FlyerBlip = 'Flyer',
+    NotYourFlyer = 'Das ist nicht deiner Finger Weg!!!',
+    FlyerHanging = 'Flyer Aufgehängt.',
+    FlyerDeletedfromPost = 'Flyer Abgerissen',
 }
